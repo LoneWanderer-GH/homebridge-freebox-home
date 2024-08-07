@@ -1,6 +1,6 @@
 let request = require('request')
 
-module.exports = function() {
+module.exports = function () {
     this.RETRY_TIMEOUT = 2000 // 2 seconds
     this.RETRY_COUNT = 0
 
@@ -8,14 +8,14 @@ module.exports = function() {
 
     this.credentials = {
         challenge: null,
-	    session: null,
-	    trackId: null,
-	    token: null
+        session: null,
+        trackId: null,
+        token: null
     }
 
     this.requestQueue = new Array()
 
-    this.freeboxAuth = function(token, trackId, callback) {
+    this.freeboxAuth = function (token, trackId, callback) {
         console.log(this.requestQueue)
         this.FreeboxSession.fbx(token, trackId, (token, sessionToken, trackId, challenge) => {
             this.authCallback(token, sessionToken, trackId, challenge)
@@ -23,7 +23,7 @@ module.exports = function() {
         })
     }
 
-    this.authCallback = function(token, sessionToken, trackId, challenge) {
+    this.authCallback = function (token, sessionToken, trackId, challenge) {
         if (token == null) {
             console.log('[!] Trying updating with null credentials')
             return
@@ -45,7 +45,7 @@ module.exports = function() {
         })
     }
 
-    this.request = function(method, url, body, callback, autoRetry) {
+    this.request = function (method, url, body, callback, autoRetry) {
         if (this.requestQueue == null) {
             this.startRequest(method, url, body, callback, autoRetry)
         } else {
@@ -57,7 +57,7 @@ module.exports = function() {
         }
     }
 
-    this.startRequest = function(method, url, body, callback, autoRetry) {
+    this.startRequest = function (method, url, body, callback, autoRetry) {
         if (this.requestQueue != null) {
             if (this.requestQueue.length == 0) {
                 this.requestQueue = this.requestQueue.shift()
@@ -68,7 +68,7 @@ module.exports = function() {
                 return
             }
         }
-        
+
         const options = {
             url: url,
             method: method,
@@ -79,8 +79,9 @@ module.exports = function() {
             body: body
         }
         var self = this
-        request(options, function(err, response, body) {
-            if(response == null) {
+        // console.log('FreeboxRequest -> send ' + url + ' with \n' + JSON.stringify(body))
+        request(options, function (err, response, body) {
+            if (response == null) {
                 console.log(err)
                 callback(null, null)
                 return
@@ -91,10 +92,10 @@ module.exports = function() {
                 console.log('[i] Fbx authed operation requested without credentials')
                 console.log(body)
                 self.FreeboxSession.session(self.credentials.token, body.result.challenge, (new_sessionToken) => {
-                    if(new_sessionToken == null) {
+                    if (new_sessionToken == null) {
                         if (autoRetry) {
                             console.log('[!] Freebox OS returned a null sessionToken. Trying again...')
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 self.request(method, url, body, callback, autoRetry)
                             }, self.RETRY_TIMEOUT)
                             return
@@ -108,19 +109,19 @@ module.exports = function() {
                     self.request(method, url, body, callback, autoRetry)
                 })
             } else {
-                if(body.error_code != null && body.error_code == 'insufficient_rights') {
+                if (body.error_code != null && body.error_code == 'insufficient_rights') {
                     if (autoRetry) {
-                        console.log('[!] Insufficient rights to request home api ('+body.missing_right+'). Trying again...')
-                        setTimeout(function() {
+                        console.log('[!] Insufficient rights to request home api (' + body.missing_right + '). Trying again...')
+                        setTimeout(function () {
                             self.request(method, url, body, callback, autoRetry)
                         }, self.RETRY_TIMEOUT)
                     } else {
                         console.log('[!] Insufficient rights to request home api.')
                         callback(401, null)
                     }
-                } else if(body.success == false) {
-                    setTimeout(function() {
-                        if(self.RETRY_COUNT < 3) {
+                } else if (body.success == false) {
+                    setTimeout(function () {
+                        if (self.RETRY_COUNT < 3) {
                             self.request(method, url, body, callback, autoRetry)
                             self.RETRY_COUNT++
                         } else {
@@ -135,7 +136,7 @@ module.exports = function() {
                 if (self.requestQueue != null) {
                     if (self.requestQueue.length > 0) {
                         let next = self.requestQueue[0]
-                        setTimeout(function() {
+                        setTimeout(function () {
                             self.startRequest(next.method, next.url, next.body, next.callback, next.autoRetry)
                         }, 500) // delay before next operation
                     }

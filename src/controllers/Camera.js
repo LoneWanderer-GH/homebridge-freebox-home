@@ -33,7 +33,7 @@ module.exports = function() {
     }
 
     this.listCamera = function(callback) {
-        let url = 'http://mafreebox.freebox.fr/api/v6/home/nodes'
+        let url = 'http://mafreebox.freebox.fr/api/v8/home/nodes'
         this.freeboxRequest.request('GET', url, null, (statusCode, body) => {
             if (body != null) {
                 if (body.success == true) {

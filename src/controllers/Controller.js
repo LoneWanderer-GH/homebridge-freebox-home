@@ -1,31 +1,34 @@
 let Alarm = require('./Alarm')
 let Sensor = require('./Sensor')
+let Blinds = require('./Blinds')
 let Logs = require('./Logs')
 let FreeboxRequest = require('../freeboxOS/FreeboxRequest')
 let HomebridgeConf = require('../homebridge/HomebridgeConf')
 let homebridgeUtils = require('../homebridge/HomebridgeUtils')
 let credentials = require('../freeboxOS/Credentials')
 
-module.exports = function() {
+module.exports = function () {
     this.alarm = new Alarm()
     this.sensor = new Sensor()
+    this.blinds = new Blinds()
     this.freeboxRequest = new FreeboxRequest()
-    
-    this.init = function() {
+
+    this.init = function () {
         this.alarm.init(this.freeboxRequest)
         this.sensor.init(this.freeboxRequest)
+        this.blinds.init(this.freeboxRequest)
     }
 
-    this.startFreeboxAuthentication = function(callback) {
+    this.startFreeboxAuthentication = function (callback) {
         credentials.getStoredCredentials((data) => {
             this.freeboxRequest.freeboxAuth(data.token, data.track, (token, sessionToken, trackId, challenge) => {
-                credentials.update(token, trackId, (success) => {})
+                credentials.update(token, trackId, (success) => { })
                 callback(sessionToken != null)
             })
         })
     }
 
-    this.testRequest = function(callback) {
+    this.testRequest = function (callback) {
         this.freeboxRequest.request('GET', 'http://mafreebox.freebox.fr/api/v6/downloads/', null, (code, data) => {
             callback(code)
         }, false)
@@ -37,7 +40,7 @@ module.exports = function() {
 
     // > [GET] host:port/api/ping
     // Will just if tell the server is up.
-    this.handlePing = function(response) {
+    this.handlePing = function (response) {
         response.status(200)
         response.send('OK')
     }
@@ -49,7 +52,7 @@ module.exports = function() {
     // > [GET] host:port/api/fbx/rights
     // Will return a boolean value to show wether the app has home acces
     // or not, and will be able to request home api.
-    this.handleCheckRights = function(response) {
+    this.handleCheckRights = function (response) {
         this.sensor.testHomeCapabilities((success) => {
             response.status(200)
             response.send(success)
@@ -59,7 +62,7 @@ module.exports = function() {
     // > [GET] host:port/api/fbx/auth
     // Will return a boolean value to show wether the app has been auth
     // or not on freebox os.
-    this.handleAuth = function(response, callback) {
+    this.handleAuth = function (response, callback) {
         this.freeboxRequest.freeboxAuth(null, null, (token, sessionToken, trackId, challenge) => {
             credentials.update(token, trackId, (success) => {
                 callback(success)
@@ -78,7 +81,7 @@ module.exports = function() {
     // > [GET] host:port/api/homebridge/restart
     // Simply restart homebridge services via a kill command on the pm2
     // homebridge process.
-    this.handleHomebridgeRestart = function(response) {
+    this.handleHomebridgeRestart = function (response) {
         homebridgeUtils.restart((success) => {
             response.status(200)
             response.send(success)
@@ -88,7 +91,7 @@ module.exports = function() {
     // > [GET] host:port/api/homebridge/conf
     // Load a homebridge configuration file with the available nodes.
     // Returns a boolean value as a success value.
-    this.handleHomebridgeConf = function(response) {
+    this.handleHomebridgeConf = function (response) {
         let homebridgeConf = new HomebridgeConf(this.sensor)
         let config = {
             alarmEnabled: true,
@@ -104,7 +107,7 @@ module.exports = function() {
     // Load a homebridge configuration file with the available nodes,
     // including the alarm.
     // Returns a boolean value as a success value.
-    this.handleHomebridgeConfWithAlarm = function(response) {
+    this.handleHomebridgeConfWithAlarm = function (response) {
         let homebridgeConf = new HomebridgeConf(this.sensor)
         let config = {
             alarmEnabled: true,
@@ -120,7 +123,7 @@ module.exports = function() {
     // Load a homebridge configuration file with the available nodes,
     // including the camera.
     // Returns a boolean value as a success value.
-    this.handleHomebridgeConfWithCamera = function(response) {
+    this.handleHomebridgeConfWithCamera = function (response) {
         let homebridgeConf = new HomebridgeConf(this.sensor)
         let config = {
             alarmEnabled: false,
@@ -136,7 +139,7 @@ module.exports = function() {
     // Load a homebridge configuration file with the available nodes,
     // including the alarm and the camera.
     // Returns a boolean value as a success value.
-    this.handleHomebridgeConfFull = function(response) {
+    this.handleHomebridgeConfFull = function (response) {
         let homebridgeConf = new HomebridgeConf(this.sensor)
         let config = {
             alarmEnabled: true,
@@ -152,7 +155,7 @@ module.exports = function() {
     // Removes the homebridge persist file, to be able ro re-pair with
     // a new HomeKit app (attached to another iCloud account).
     // Returns a boolean value as a success value.
-    this.handleHomebridgeClean = function(response) {
+    this.handleHomebridgeClean = function (response) {
         homebridgeUtils.clean((success) => {
             response.status(200)
             response.send(success)
@@ -166,7 +169,7 @@ module.exports = function() {
     // > [GET] host:port/api/node/list
     // Returns the list of the available nodes (only ids).
     // Will be called only from localhost.
-    this.handleNodeList = function(response) {
+    this.handleNodeList = function (response) {
         this.sensor.getNodeList((list) => {
             var nodes = []
             for (item of list) {
@@ -185,7 +188,7 @@ module.exports = function() {
     // Get the status of a node by it's id.
     // This will be the method used by homebridge.
     // Will be called only from localhost.
-    this.handleNodeStatus = function(id, response) {
+    this.handleNodeStatus = function (id, response) {
         this.sensor.getNodeStatus(id, (status) => {
             response.status(200)
             response.send(status)
@@ -195,15 +198,15 @@ module.exports = function() {
     // > [GET] host:port/api/refresh/:id
     // Update the refresh timeout for the node
     // refresh loop.
-    this.handleTimeoutUpdate = function(timeout, response) {
+    this.handleTimeoutUpdate = function (timeout, response) {
         if (timeout < 1000) {
             response.status(200)
-            response.send("Error : Timeout must be at least 1000 milliseconds")
+            response.send('Error : Timeout must be at least 1000 milliseconds')
         } else {
-            console.log('[i] Refresh timeout changed : '+timeout)
+            console.log('[i] Refresh timeout changed : ' + timeout)
             this.sensor.refreshTimeout = timeout
             response.status(200)
-            response.send("OK")
+            response.send('OK')
         }
     }
 
@@ -211,21 +214,21 @@ module.exports = function() {
     // Alarm
     // ------------
 
-    this.handleAlarmMain = function(response) {
+    this.handleAlarmMain = function (response) {
         this.alarm.setAlarmMain((success) => {
             response.status(200)
             response.send(success)
         })
     }
 
-    this.handleAlarmSecondary = function(response) {
+    this.handleAlarmSecondary = function (response) {
         this.alarm.setAlarmSecondary((success) => {
             response.status(200)
             response.send(success)
         })
     }
 
-    this.handleAlarmOff = function(response) {
+    this.handleAlarmOff = function (response) {
         this.alarm.setAlarmDisabled((success) => {
             response.status(200)
             response.send(success)
@@ -236,7 +239,7 @@ module.exports = function() {
 
     this.armingAnAlarm = 0
 
-    this.handleAlarmState = function(response) {
+    this.handleAlarmState = function (response) {
         this.alarm.getAlarmState((state) => {
             var stateValue = 0
             if (state == 'alarm1_arming') {
@@ -267,7 +270,7 @@ module.exports = function() {
         })
     }
 
-    this.handleAlarmTarget = function(response) {
+    this.handleAlarmTarget = function (response) {
         this.alarm.getAlarmTarget((target) => {
             response.status(200)
             response.send(target.toString())
@@ -282,7 +285,7 @@ module.exports = function() {
     // These are various methods to get logs for troubleshooting purpose.
 
     // > [GET] host:port/api/log/server
-    this.handleServerLogs = function(response) {
+    this.handleServerLogs = function (response) {
         let logs = new Logs()
         logs.getServerLogs((logs) => {
             response.status(200)
@@ -291,7 +294,7 @@ module.exports = function() {
     }
 
     // > [GET] host:port/api/log/homebridge
-    this.handleHomebridgeLogs = function(response) {
+    this.handleHomebridgeLogs = function (response) {
         let logs = new Logs()
         logs.getHomebridgeLogs((logs) => {
             response.status(200)
@@ -300,7 +303,7 @@ module.exports = function() {
     }
 
     // > [GET] host:port/api/log/server/error
-    this.handleServerErrorLogs = function(response) {
+    this.handleServerErrorLogs = function (response) {
         let logs = new Logs()
         logs.getServerErrorLogs((logs) => {
             response.status(200)
@@ -309,7 +312,7 @@ module.exports = function() {
     }
 
     // > [GET] host:port/api/log/homebridge/error
-    this.handleHomebridgeErrorLogs = function(response) {
+    this.handleHomebridgeErrorLogs = function (response) {
         let logs = new Logs()
         logs.getHomebridgeErrorLogs((logs) => {
             response.status(200)
@@ -318,7 +321,7 @@ module.exports = function() {
     }
 
     // > [GET] host:port/api/log/clean
-    this.handleCleanLogs = function(response) {
+    this.handleCleanLogs = function (response) {
         let logs = new Logs()
         logs.clearLogs((success) => {
             response.status(200)
@@ -326,11 +329,63 @@ module.exports = function() {
         })
     }
 
-    this.handleGetVersion = function(response) {
+    this.handleGetVersion = function (response) {
         let logs = new Logs()
         logs.getLastCommitId((id) => {
             response.status(200)
             response.send(id.toString())
         })
     }
+
+    /*--------------------*/
+    // > [GET] host:port/api/blinds/:id/open
+    this.handleOpenBlind = function (blindIndex, response) {
+        this.blinds.openBlind(blindIndex, (success) => {
+            response.status(200)
+            response.send(success)
+        })
+    }
+    // > [GET] host:port/api/blinds/:id/close
+    this.handleCloseBlind = function (blindIndex, response) {
+        this.blinds.closeBlind(blindIndex, (success) => {
+            response.status(200)
+            response.send(success)
+        })
+    }
+    // > [GET] host:port/api/blinds/:id/setpos/:pos
+    this.handleSetBlindPos = function (blindIndex, pos, response) {
+        console.log('Controller -> api/blinds/' + blindIndex + '/setpos/' + pos)
+        if (pos < 0 || pos > 100) {
+            console.log('Controller -> invalid pos value' + pos + ' should be between 0 and 100')
+            return response.status(403).send('Forbidden store position ' + pos + ' should be between 0 and 100')
+        } else {
+            this.blinds.setBlindPosition(blindIndex, pos, (success) => {
+                response.status(200)
+                response.send(success)
+            })
+        }
+    }
+
+    // > [GET] host:port/api/blinds/:id/toggle
+    this.handleToggleBlind = function (blindIndex, response) {
+        this.blinds.toggleBlind(blindIndex, (success) => {
+            response.status(200)
+            response.send(success)
+        })
+    }
+    // > [GET] host:port/api/blinds/:id/getpos
+    this.handleGetBlindPos = function (blindIndex, response) {
+        this.blinds.getBlindCurentPosition(blindIndex, (success) => {
+            response.status(200)
+            response.send(success)
+        })
+    }
+    // > [GET] host:port/api/blinds/:id/stop
+    this.handleStopBlind = function (blindIndex, response) {
+        this.blinds.stopBlind(blindIndex, (success) => {
+            response.status(200)
+            response.send(success)
+        })
+    }
+    /*--------------------*/
 }

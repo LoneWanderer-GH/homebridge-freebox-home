@@ -13,7 +13,7 @@ module.exports = function() {
     }
 
     this.getAlarm = function(callback) {
-        let url = 'http://mafreebox.freebox.fr/api/v6/home/nodes'
+        let url = 'http://mafreebox.freebox.fr/api/v8/home/nodes'
         this.freeboxRequest.request('GET', url, null, (statusCode, body) => {
             if (body != null) {
                 if (body.success == true) {
@@ -22,6 +22,9 @@ module.exports = function() {
                             this.storedAlarmNode = node
                             callback(node)
                         }
+			else {
+				//console.log('[d] node : ' + JSON.stringify(node))
+			}
                     }
                 } else {
                     console.log('[!] Got a '+statusCode+', unable to request : '+url)
@@ -38,7 +41,7 @@ module.exports = function() {
     this.refreshAlarmTarget = function() {
         if (this.storedAlarmNode != null) {
             let ep_id = this.getStateEndpoint()
-            let url = 'http://mafreebox.freebox.fr/api/v6/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
+            let url = 'http://mafreebox.freebox.fr/api/v8/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
             this.freeboxRequest.request('GET', url, null, (statusCode, body) => {
                 if(body != null) {
                     if(body.success == true) {
@@ -131,7 +134,7 @@ module.exports = function() {
     this.getAlarmState = function(callback) {
         if (this.storedAlarmNode != null) {
             let ep_id = this.getStateEndpoint()
-            let url = 'http://mafreebox.freebox.fr/api/v6/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
+            let url = 'http://mafreebox.freebox.fr/api/v8/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
             let data = {
                 id: this.storedAlarmNode.id,
                 value: null
@@ -178,7 +181,7 @@ module.exports = function() {
     this.setAlarmDisabled = function(callback) {
         if (this.storedAlarmNode != null) {
             let ep_id = this.getOffEndpoint()
-            let url = 'http://mafreebox.freebox.fr/api/v6/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
+            let url = 'http://mafreebox.freebox.fr/api/v8/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
             let data = {
                 id: this.storedAlarmNode.id,
                 value: null
@@ -206,7 +209,7 @@ module.exports = function() {
             if (activable) {
                 if (this.storedAlarmNode != null) {
                     let ep_id = this.getMainEndpoint()
-                    let url = 'http://mafreebox.freebox.fr/api/v6/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
+                    let url = 'http://mafreebox.freebox.fr/api/v8/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
                     let data = {
                         id: this.storedAlarmNode.id,
                         value: null
@@ -238,7 +241,7 @@ module.exports = function() {
             if (activable) {
                 if (this.storedAlarmNode != null) {
                     let ep_id = this.getSecondaryEndpoint()
-                    let url = 'http://mafreebox.freebox.fr/api/v6/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
+                    let url = 'http://mafreebox.freebox.fr/api/v8/home/endpoints/'+this.storedAlarmNode.id+'/'+ep_id
                     let data = {
                         id: this.storedAlarmNode.id,
                         value: null
