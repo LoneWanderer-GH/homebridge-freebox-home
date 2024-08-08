@@ -139,6 +139,11 @@ module.exports = function () {
             let blindIndex = parseInt(req.params.id, 10)
             self.controller.handleGetBlindPos(blindIndex, res)
         })
+        self.router.get('/blinds/:id/gettargetpos', function (req, res) {
+            console.log("[GET] api/blinds/:id/gettargetpos - " + JSON.stringify(req.headers) + " -> " + JSON.stringify(req.body))
+            let blindIndex = parseInt(req.params.id, 10)
+            self.controller.handleGetBlindTargetPos(blindIndex, res)
+        })
         self.router.get('/blinds/:id/stop', function (req, res) {
             console.log("[GET] api/blinds/:id/stop - " + JSON.stringify(req.headers) + " -> " + JSON.stringify(req.body))
             let blindIndex = parseInt(req.params.id, 10)

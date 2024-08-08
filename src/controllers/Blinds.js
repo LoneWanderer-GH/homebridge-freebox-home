@@ -30,7 +30,8 @@ module.exports = function () {
                                                                 'nodeid': node.id,
                                                                 'displayName': node.label,
                                                                 'endpoints': node.show_endpoints,
-                                                                'current_position': null
+                                                                'current_position': null,
+                                                                "target_position": null
                                                         }
                                                         console.log('[d] found store/shutter=' + o.nodeid + '->' + o.displayName)
                                                         // console.log(JSON.stringify(node))
@@ -70,8 +71,46 @@ module.exports = function () {
         }
 
 
-        this.getBlindCurentPosition = function (blind_index, callback) {
-                console.log('Blinds -> getBlindCurentPosition -> blind index=' + blind_index)
+        this.getBlindTargetPosition = function (blind_index, callback) {
+                console.log('[d] Blinds -> getBlindTargetPosition -> blind index=' + blind_index)
+                if (blind_index >= 0 && blind_index < this.storedBlinds.length) {
+                        let blind = this.storedBlinds[blind_index]
+                        return { value: blind.target_position }
+                        // let node_id = blind.nodeid
+                        // let ep_id = null
+                        // let expected_end_point_name = 'position_set'
+                        // ep_id = this.getEndPointIdWithName(blind, expected_end_point_name, 'r')
+                        // if (ep_id != null) {
+                        //         let url = 'http://mafreebox.freebox.fr/api/v8/home/endpoints/' + node_id + '/' + ep_id
+                        //         this.freeboxRequest.request('GET', url, null, (statusCode, body) => {
+                        //                 if (body != null) {
+                        //                         if (body.success == true) {
+                        //                                 let val = body.result.value
+                        //                                 blind.current_position = val
+                        //                                 console.log('[d] Blinds -> getBlindTargetPosition -> blind=' + blind.displayName + ' nodeid=' + node_id + '-> Request success ! ' + url)
+                        //                                 console.log('[d] Blinds -> getBlindTargetPosition -> ' + JSON.stringify(body.result))
+                        //                                 console.log('[d] Blinds -> getBlindTargetPosition -> current value=' + val)
+                        //                                 callback({ value: val })
+                        //                         } else {
+                        //                                 console.log('[b] Blinds -> getBlindTargetPosition -> blind=' + blind.displayName + ' nodeid=' + blind.nodeid + '-> Request failed ... ' + url + ' statusCode=' + statusCode)
+                        //                                 callback('Failed to get position ' + value + ' to blind ' + blind.displayName + '(nodeid=' + node_id + ', endpointid=' + ep_id + ') statusCode=' + statusCode)
+                        //                         }
+                        //                 } else {
+                        //                         callback('Failed to send get position ' + value + ' to blind ' + blind.displayName + '(nodeid=' + node_id + ', endpointid=' + ep_id + ') => no body response')
+                        //                 }
+                        //         }, true)
+                        // } else {
+                        //         console.log('[d] expected endpoint with name=' + expected_end_point_name + ' not found...')
+                        //         callback('Failed to get position ' + value + ' to blind ' + blind.displayName + '(nodeid=' + node_id + ') No valid endpointid found (expected=' + expected_end_point_name + ')')
+                        // }
+                } else {
+                        console.log('[d] blind index not found: ' + blind_index)
+                        callback('Failed to get position ' + value + ' to blind index ' + blind_index + ' : index out of bounds (' + this.storedBlinds.length + ' blinds found so far)')
+                }
+        }
+
+        this.getBlindCurrentPosition = function (blind_index, callback) {
+                console.log('[d] Blinds -> getBlindCurrentPosition -> blind index=' + blind_index)
                 if (blind_index >= 0 && blind_index < this.storedBlinds.length) {
                         let blind = this.storedBlinds[blind_index]
                         let node_id = blind.nodeid
@@ -85,12 +124,12 @@ module.exports = function () {
                                                 if (body.success == true) {
                                                         let val = body.result.value
                                                         blind.current_position = val
-                                                        console.log('Blinds ->blind=' + blind.displayName + ' nodeid=' + node_id + '-> Request success ! ' + url)
-                                                        console.log('Blinds ->' + JSON.stringify(body.result))
-                                                        console.log('Blinds ->current value=' + val)
-                                                        callback({ value: blind.current_position })
+                                                        console.log('[d] Blinds -> getBlindCurrentPosition -> blind=' + blind.displayName + ' nodeid=' + node_id + '-> Request success ! ' + url)
+                                                        console.log('[d] Blinds -> getBlindCurrentPosition -> ' + JSON.stringify(body.result))
+                                                        console.log('[d] Blinds -> getBlindCurrentPosition -> current value=' + val)
+                                                        callback({ value: val })
                                                 } else {
-                                                        console.log('Blinds ->blind=' + blind.displayName + ' nodeid=' + blind.nodeid + '-> Request failed ... ' + url + ' statusCode=' + statusCode)
+                                                        console.log('Blinds -> getBlindCurrentPosition -> blind=' + blind.displayName + ' nodeid=' + blind.nodeid + '-> Request failed ... ' + url + ' statusCode=' + statusCode)
                                                         callback('Failed to get position ' + value + ' to blind ' + blind.displayName + '(nodeid=' + node_id + ', endpointid=' + ep_id + ') statusCode=' + statusCode)
                                                 }
                                         } else {
@@ -98,7 +137,7 @@ module.exports = function () {
                                         }
                                 }, true)
                         } else {
-                                console.log('[d] expected endpoint with name=' + expected_end_point_name + ' not found...')
+                                console.log('[d] Blinds -> getBlindCurrentPosition -> expected endpoint with name=' + expected_end_point_name + ' not found...')
                                 callback('Failed to get position ' + value + ' to blind ' + blind.displayName + '(nodeid=' + node_id + ') No valid endpointid found (expected=' + expected_end_point_name + ')')
                         }
                 } else {
@@ -128,6 +167,7 @@ module.exports = function () {
                                 this.freeboxRequest.request('PUT', url, data, (statusCode, body) => {
                                         if (body != null) {
                                                 if (body.success == true) {
+                                                        blind.target_position = value
                                                         console.log('[d] Blinds -> setBlindPosition -> blind=' + blind.displayName + ' nodeid=' + node_id + '-> Request success ! ' + url)
                                                         callback('Successfully sent set position ' + value + ' to blind ' + blind.displayName + '(nodeid=' + node_id + ', endpointid=' + ep_id + ')')
                                                 } else {

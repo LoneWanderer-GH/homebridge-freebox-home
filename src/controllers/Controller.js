@@ -373,11 +373,18 @@ module.exports = function () {
             response.send(success)
         })
     }
+    // > [GET] host:port/api/blinds/:id/gettargetpos
+    this.handleGetBlindTargetPos = function (blindIndex, response) {
+        this.blinds.getBlindTargetPosition(blindIndex, (value) => {
+            response.status(200)
+            response.send(value)
+        })
+    }
     // > [GET] host:port/api/blinds/:id/getpos
     this.handleGetBlindPos = function (blindIndex, response) {
-        this.blinds.getBlindCurentPosition(blindIndex, (success) => {
+        this.blinds.getBlindCurrentPosition(blindIndex, (value) => {
             response.status(200)
-            response.send(success)
+            response.send(value)
         })
     }
     // > [GET] host:port/api/blinds/:id/stop
